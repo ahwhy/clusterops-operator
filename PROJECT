@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: clusterops-operator
 repo: github.com/ahwhy/clusterops-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: clusterops.io
+  group: apps
+  kind: Application
+  path: github.com/ahwhy/clusterops-operator/api/v1
+  version: v1
 version: "3"
