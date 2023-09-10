@@ -17,6 +17,8 @@ limitations under the License.
 package v1
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,8 +32,16 @@ type ApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Application. Edit application_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Deployment DeploymentTemplate `json:"deployment,omitempty"`
+	Service    ServiceTemplate    `json:"service,omitempty"`
+}
+
+type DeploymentTemplate struct {
+	appsv1.DeploymentSpec `json:",inline"`
+}
+
+type ServiceTemplate struct {
+	corev1.ServiceSpec `json:",inline"`
 }
 
 // 这里的 Status 也不是严格对应"实际状态"，而是观察并记录下来的当前对象最新"状态"
@@ -39,6 +49,8 @@ type ApplicationSpec struct {
 type ApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Workflow appsv1.DeploymentStatus `json:"workflow"`
+	Network  corev1.ServiceStatus    `json:"network"`
 }
 
 // 这个标记主要是被 controller-tools 识别，然后 controller-tools 的对象生成器就知道这个标记下面的对象代表一个 Kind，接着对象生成器会生成相应的 Kind 需要的代码，也就是实现 runtime.Object 接口
@@ -50,7 +62,7 @@ type ApplicationStatus struct {
 // Application is the Schema for the applications API
 type Application struct {
 	// TypeMeta 中存放的是当前资源的 Kind 和 APIVersion 信息
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
 	// ObjectMeta 中存放的是 Name、Namespace、Labels 和 Annotations 等信息
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -66,7 +78,7 @@ type ApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// 通过 Items 存放一组 Application，用于 List 之类的批量操作
-	Items           []Application `json:"items"`
+	Items []Application `json:"items"`
 }
 
 func init() {

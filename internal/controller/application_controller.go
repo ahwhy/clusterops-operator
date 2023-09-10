@@ -18,13 +18,23 @@ package controller
 
 import (
 	"context"
+	"time"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	appsv1 "github.com/ahwhy/clusterops-operator/api/v1"
+	v1 "github.com/ahwhy/clusterops-operator/api/v1"
+)
+
+const (
+	GenericRequeueDuraiton = 1 * time.Minute
+)
+
+var (
+	CounterReconcileApplication int64
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -47,16 +57,54 @@ type ApplicationReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *ApplicationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	// Reconcile 调谐过程是并发执行的，这里等待 100毫秒，并对 reconcile 次数进行累计
+	<-time.NewTicker(100 * time.Millisecond).C
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	CounterReconcileApplication += 1
+	logger.Info("Starting a reconile", "number", CounterReconcileApplication)
 
+	// Get Application
+	// 实例化一个 *v1.Application 类型的 app 对象，通过 r.Get() 方法查询触发当前调谐逻辑对应的 Application，将其写入 app
+	app := &v1.Application{}
+	if err := r.Get(ctx, req.NamespacedName, app); err != nil {
+		// 当 Application 不存在，结束本轮调谐
+		if errors.IsNotFound(err) {
+			logger.Info("Application not found.")
+			return ctrl.Result{}, nil
+		}
+		// 其他错误情况，通过重试来处理
+		logger.Error(err, "Failed to get the Application, will requeue after a short time.")
+		return ctrl.Result{RequeueAfter: GenericRequeueDuraiton}, err
+	}
+
+	// reconcile sub-resource
+	var result ctrl.Result
+	var err error
+
+	result, err = r.reconcileDeployment(ctx, app)
+	if err != nil {
+		logger.Error(err, "Fail to reconcile Deployment.")
+		return result, err
+	}
+
+	result, err = r.reconcileService(ctx, app)
+	if err != nil {
+		logger.Error(err, "")
+		return result, err
+	}
+
+	logger.Info("All resources have been reconciled.")
 	return ctrl.Result{}, nil
 }
+
+func (r *ApplicationReconciler) reconcileDeployment(ctx context.Context, app *v1.Application) (ctrl.Result, error)
+
+func (r *ApplicationReconciler) reconcileService(ctx context.Context, app *v1.Application) (ctrl.Result, error)
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appsv1.Application{}).
+		For(&v1.Application{}).
 		Complete(r)
 }
