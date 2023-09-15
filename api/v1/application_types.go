@@ -58,6 +58,8 @@ type ApplicationStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
+//+kubebuilder:resource:path=application,singular=application,scope=Namespaced,shortName=app
+
 // Application 结构体是 Application 类型的"根类型"，和其他所有的 Kubernetes 资源类型一样包含 TypeMeta 和 ObjectMeta
 // Application is the Schema for the applications API
 type Application struct {
