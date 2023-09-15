@@ -55,6 +55,7 @@ func (r *ApplicationReconciler) reconcileDeployment(ctx context.Context, app *v1
 	newDp.Spec = app.Spec.Deployment.DeploymentSpec
 	newDp.Spec.Template.SetLabels(app.Labels)
 
+	// 将当前创建的 newDp 设置为 Application 类型的 app 资源的子资源
 	if err := ctrl.SetControllerReference(app, newDp, r.Scheme); err != nil {
 		logger.Error(err, "Failed to Set ControllerReference, will requeue after a short time.")
 		return ctrl.Result{RequeueAfter: GenericRequeueDuraiton}, err

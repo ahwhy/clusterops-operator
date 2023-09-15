@@ -55,6 +55,7 @@ func (r *ApplicationReconciler) reconcileService(ctx context.Context, app *v1.Ap
 	newSvc.Spec = app.Spec.Service.ServiceSpec
 	newSvc.Spec.Selector = app.Labels
 
+	// 将当前创建的 newSvc 设置为 Application 类型的 app 资源的子资源
 	if err := ctrl.SetControllerReference(app, newSvc, r.Scheme); err != nil {
 		logger.Error(err, "Failed to Set ControllerReference, will requeue after a short time.")
 		return ctrl.Result{RequeueAfter: GenericRequeueDuraiton}, err

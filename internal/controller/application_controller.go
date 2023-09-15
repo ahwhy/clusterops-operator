@@ -18,13 +18,19 @@ package controller
 
 import (
 	"context"
+	"reflect"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	v1 "github.com/ahwhy/clusterops-operator/api/v1"
 )
@@ -105,7 +111,69 @@ func (r *ApplicationReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	setupLog := ctrl.Log.WithName("setup")
+
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1.Application{}).
+		For(&v1.Application{}, builder.WithPredicates(predicate.Funcs{
+			CreateFunc: func(event event.CreateEvent) bool {
+				return true
+			},
+			DeleteFunc: func(event event.DeleteEvent) bool {
+				setupLog.Info("The Application has been deleted.", "name", event.Object.GetName())
+				return false
+			},
+			UpdateFunc: func(event event.UpdateEvent) bool {
+				if event.ObjectNew.GetResourceVersion() == event.ObjectOld.GetResourceVersion() {
+					return false
+				}
+				if reflect.DeepEqual(event.ObjectNew.(*v1.Application).Spec, event.ObjectOld.(*v1.Application).Spec) {
+					return false
+				}
+				return true
+			},
+			GenericFunc: func(event event.GenericEvent) bool {
+				return true
+			},
+		})).
+		// Deployment
+		Owns(&appsv1.Deployment{}, builder.WithPredicates(predicate.Funcs{
+			CreateFunc: func(event event.CreateEvent) bool {
+				return false
+			},
+			DeleteFunc: func(event event.DeleteEvent) bool {
+				setupLog.Info("The Deployment has been deleted.", "name", event.Object.GetName())
+				return true
+			},
+			UpdateFunc: func(event event.UpdateEvent) bool {
+				if event.ObjectNew.GetResourceVersion() == event.ObjectOld.GetResourceVersion() {
+					return false
+				}
+				if reflect.DeepEqual(event.ObjectNew.(*appsv1.Deployment).Spec, event.ObjectOld.(*appsv1.Deployment).Spec) {
+					return false
+				}
+				return true
+			},
+			GenericFunc: nil,
+		})).
+		// Service
+		Owns(&corev1.Service{}, builder.WithPredicates(predicate.Funcs{
+			CreateFunc: func(event event.CreateEvent) bool {
+				return false
+			},
+			DeleteFunc: func(event event.DeleteEvent) bool {
+				setupLog.Info("The Service has been deleted.", "name", event.Object.GetName())
+				return true
+			},
+			UpdateFunc: func(event event.UpdateEvent) bool {
+				if event.ObjectNew.GetResourceVersion() == event.ObjectOld.GetResourceVersion() {
+					return false
+				}
+				if reflect.DeepEqual(event.ObjectNew.(*corev1.Service).Spec, event.ObjectOld.(*corev1.Service).Spec) {
+					return false
+				}
+				return true
+			},
+			GenericFunc: nil,
+		})).
 		Complete(r)
 }
