@@ -96,7 +96,7 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Application")
-		os.Exit(1) 
+		os.Exit(1)
 	}
 	if err = (&appsv1.Application{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Application")
