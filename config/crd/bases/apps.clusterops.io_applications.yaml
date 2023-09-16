@@ -11,14 +11,15 @@ spec:
     kind: Application
     listKind: ApplicationList
     plural: applications
+    shortNames:
+    - app
     singular: application
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Application 结构体是 Application 类型的"根类型"，和其他所有的 Kubernetes 资源类型一样包含
-          TypeMeta 和 ObjectMeta Application is the Schema for the applications API
+        description: Application is the Schema for the applications API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,9 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: Operator 的核心逻辑就是不断调谐资源对象的实际状态和期望状态(Spec)保持一致 大多数资源对象都有Spec和Status两个部分，但是也有部分资源对象不符合这种模式，比如
-              ConfigMap 之类的静态资源对象就不存在着 "期望的状态" 这一说法 ApplicationSpec defines the desired
-              state of Application
+            description: ApplicationSpec defines the desired state of Application
             properties:
               deployment:
                 properties:
@@ -8350,8 +8349,7 @@ spec:
                 type: object
             type: object
           status:
-            description: 这里的 Status 也不是严格对应"实际状态"，而是观察并记录下来的当前对象最新"状态" ApplicationStatus
-              defines the observed state of Application
+            description: ApplicationStatus defines the observed state of Application
             properties:
               network:
                 description: ServiceStatus represents the current status of a service.
@@ -8492,9 +8490,9 @@ spec:
                     type: object
                 type: object
               workflow:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
+                description: '这里的 Status 也不是严格对应"实际状态"，而是观察并记录下来的当前对象最新"状态" INSERT
+                  ADDITIONAL STATUS FIELD - define observed state of cluster Important:
+                  Run "make" to regenerate code after modifying this file'
                 properties:
                   availableReplicas:
                     description: Total number of available pods (ready for at least
@@ -8577,5 +8575,3 @@ spec:
         type: object
     served: true
     storage: true
-    subresources:
-      status: {}
