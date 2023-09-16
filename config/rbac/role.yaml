@@ -7,7 +7,7 @@ rules:
 - apiGroups:
   - apps
   resources:
-  - deployment
+  - deployments
   verbs:
   - create
   - delete
@@ -19,7 +19,7 @@ rules:
 - apiGroups:
   - apps
   resources:
-  - deployment/status
+  - deployments/status
   verbs:
   - get
 - apiGroups:
@@ -51,7 +51,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - service
+  - services
   verbs:
   - create
   - delete
@@ -63,6 +63,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - service/status
+  - services/status
   verbs:
   - get
