@@ -59,7 +59,6 @@ type ApplicationStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-
 //+kubebuilder:resource:path=applications,singular=application,scope=Namespaced,shortName=app
 
 // Application is the Schema for the applications API

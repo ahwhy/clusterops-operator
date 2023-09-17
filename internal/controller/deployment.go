@@ -34,7 +34,7 @@ func (r *ApplicationReconciler) reconcileDeployment(ctx context.Context, app *v1
 		app.Status.Workflow = dp.Status
 		// 若不相等，则触发更新
 		if err := r.Status().Update(ctx, app); err != nil {
-			logger.Error(err, "Failed to update Application status.")
+			logger.Error(err, "Failed to update Application deployment status.")
 			return ctrl.Result{RequeueAfter: GenericRequeueDuraiton}, err
 		}
 
