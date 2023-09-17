@@ -1,0 +1,25 @@
+apiVersion: apps.clusterops.io/v1
+kind: Application
+metadata:
+  name: appdemo
+  labels:
+    app: demoapp
+spec:
+  deployment:
+    replicas: 4
+    selector:
+      matchLabels:
+        app: demoapp
+    template:
+      spec:
+        containers:
+        - name: demoapp
+          image: registry.cn-hangzhou.aliyuncs.com/opensf/demoapp:v1.0
+          ports:
+          - containerPort: 80
+            name: http
+  service:
+    type: NodePort
+    ports:
+    - port: 80
+      targetPort: 80
